@@ -1,0 +1,40 @@
+name: Deploy to ECS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ vars.AWS_REGION }}
+
+    - name: Build and push Docker image to ECR
+      run: |
+        # Replace 'your-ecr-repository' with your ECR repository name
+        # Build the Docker image
+        docker build -t ${{ vars.IMAGE_NAME }} .
+
+        # Authenticate Docker to your ECR registry
+        aws ecr get-login-password --region ${{ vars.AWS_REGION }} | docker login --username AWS --password-stdin ${{ vars.IMAGE_REPO_PREFIX }}
+
+        # Push the Docker image to ECR
+        docker tag ${{ vars.IMAGE_NAME }}:latest ${{ vars.IMAGE_REPO_PREFIX }}/${{ vars.IMAGE_NAME }}:latest
+        docker push ${{ vars.IMAGE_REPO_PREFIX }}/${{ vars.IMAGE_NAME }}:latest
+
+    - name: Update ECS service
+      run: |
+        # Replace 'your-ecs-cluster' and 'your-ecs-service' with your ECS cluster and service names
+        # Update the ECS service with the new task definition revision
+        aws ecs update-service --cluster ${{ vars.ECS_CLUSTER }} --service ${{ vars.ECS_SERVICE }} --force-new-deployment
