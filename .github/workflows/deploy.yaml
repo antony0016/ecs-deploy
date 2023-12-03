@@ -28,7 +28,7 @@ jobs:
 
         # Authenticate Docker to your ECR registry
         # aws ecr get-login-password --region ${{ vars.AWS_REGION }} | docker login --username AWS --password-stdin ${{ vars.IMAGE_REPO_PREFIX }}
-        aws ecr-public get-login-password --region ${{ vars.AWS_REGION }} | docker login --username AWS --password-stdin ${{ vars.IMAGE_REPO_PREFIX }}
+        aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ vars.IMAGE_REPO_PREFIX }}
 
         # Push the Docker image to ECR
         docker tag ${{ vars.IMAGE_NAME }}:latest ${{ vars.IMAGE_REPO_PREFIX }}/${{ vars.IMAGE_NAME }}:latest
